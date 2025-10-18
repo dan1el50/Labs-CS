@@ -1,19 +1,23 @@
 import java.util.Scanner;
 
 public class Task2 {
-    private static final String ORIGINAL_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-    private static String generatePermutedAlphabet(String key2) {
-        key2 = key2.toUpperCase();
-        if (!key2.matches("[A-Z]+") || key2.length() < 7) {
-            return null; // Invalid key2
+    private static final String ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+    // Generate permuted alphabet from keyword
+    private static String generatePermutedAlphabet(String keyword) {
+        keyword = keyword.toUpperCase();
+
+        // Validate keyword
+        if (!keyword.matches("[A-Z]+") || keyword.length() < 7) {
+            return null;
         }
 
         StringBuilder permuted = new StringBuilder();
         boolean[] used = new boolean[26];
 
-        // Add unique letters from key2 in order
-        for (char c : key2.toCharArray()) {
+        // Add unique letters from keyword
+        for (char c : keyword.toCharArray()) {
             int index = c - 'A';
             if (!used[index]) {
                 permuted.append(c);
@@ -21,7 +25,7 @@ public class Task2 {
             }
         }
 
-        // Add remaining letters A-Z
+        // Add remaining letters
         for (char c = 'A'; c <= 'Z'; c++) {
             int index = c - 'A';
             if (!used[index]) {
@@ -32,91 +36,83 @@ public class Task2 {
         return permuted.toString();
     }
 
-    private static String formatAlphabet(String alph) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < alph.length(); i++) {
-            if (i > 0) {
-                sb.append(" ");
-            }
-            sb.append(alph.charAt(i));
-        }
-        return sb.toString();
-    }
-
-    public static String encrypt(String text, int key1, String alphabet) {
-        text = text.toUpperCase().replaceAll("\\s", "");
+    // Encrypt text
+    public static String encrypt(String text, int shift, String permutedAlphabet) {
+        text = text.toUpperCase().replace(" ", "");
         StringBuilder result = new StringBuilder();
-        for (int i = 0; i < text.length(); i++) {
-            char c = text.charAt(i);
-            int originalIndex = alphabet.indexOf(c);
-            if (originalIndex == -1) {
-                return "Text contains invalid characters. Allowed characters are A-Z and a-z only.";
-            }
-            int newIndex = (originalIndex + key1) % 26;
-            result.append(alphabet.charAt(newIndex));
+
+        for (char c : text.toCharArray()) {
+            int pos = permutedAlphabet.indexOf(c);
+            int newPos = (pos + shift) % 26;
+            result.append(permutedAlphabet.charAt(newPos));
         }
+
         return result.toString();
     }
 
-    public static String decrypt(String text, int key1, String alphabet) {
-        text = text.toUpperCase().replaceAll("\\s", "");
+    // Decrypt text
+    public static String decrypt(String text, int shift, String permutedAlphabet) {
+        text = text.toUpperCase();
         StringBuilder result = new StringBuilder();
-        for (int i = 0; i < text.length(); i++) {
-            char c = text.charAt(i);
-            int originalIndex = alphabet.indexOf(c);
-            if (originalIndex == -1) {
-                return "Text contains invalid characters. Allowed characters are A-Z and a-z only.";
-            }
-            int newIndex = (originalIndex - key1 + 26) % 26;
-            result.append(alphabet.charAt(newIndex));
+
+        for (char c : text.toCharArray()) {
+            int pos = permutedAlphabet.indexOf(c);
+            int newPos = (pos - shift + 26) % 26;
+            result.append(permutedAlphabet.charAt(newPos));
         }
+
         return result.toString();
     }
 
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
+        Scanner sc = new Scanner(System.in);
 
-        System.out.println("Choose operation: 1 for Encrypt, 2 for Decrypt");
-        int operation = scanner.nextInt();
-        scanner.nextLine(); // Consume newline
+        // Get operation
+        System.out.println("Choose: 1 for encryption, 2 for decryption:");
+        int operation = sc.nextInt();
+        sc.nextLine();
 
         if (operation != 1 && operation != 2) {
-            System.out.println("Invalid operation. Please choose 1 or 2.");
+            System.out.println("Invalid operation!");
             return;
         }
 
-        System.out.println("Enter the shift key (1-25):");
-        int key1 = scanner.nextInt();
-        scanner.nextLine(); // Consume newline
+        // Get shift key
+        System.out.println("Enter shift key (1-25):");
+        int shift = sc.nextInt();
+        sc.nextLine();
 
-        if (key1 < 1 || key1 > 25) {
-            System.out.println("Invalid shift key. The key must be between 1 and 25 inclusive.");
+        if (shift < 1 || shift > 25) {
+            System.out.println("Key must be between 1 and 25!");
             return;
         }
 
-        System.out.println("Enter the permutation key (at least 7 Latin letters):");
-        String key2 = scanner.nextLine();
+        // Get permutation keyword
+        System.out.println("Enter keyword (minimum 7 letters, only A-Z):");
+        String keyword = sc.nextLine();
 
-        String alphabet = generatePermutedAlphabet(key2);
-        if (alphabet == null) {
-            System.out.println("Invalid permutation key. It must contain only A-Z letters (case insensitive) and be at least 7 characters long.");
+        String permutedAlphabet = generatePermutedAlphabet(keyword);
+        if (permutedAlphabet == null) {
+            System.out.println("Invalid keyword! Must be at least 7 letters, only A-Z.");
             return;
         }
 
-        // Print alphabets
-        System.out.println("Original Alphabet: " + formatAlphabet(ORIGINAL_ALPHABET));
-        System.out.println("Permuted Alphabet: " + formatAlphabet(alphabet));
+        // Display alphabets
+        System.out.println("\nOriginal alphabet:  " + ALPHABET);
+        System.out.println("Permuted alphabet:  " + permutedAlphabet);
 
-        System.out.println("Enter the text:");
-        String text = scanner.nextLine();
+        // Get text
+        System.out.println("\nEnter text:");
+        String text = sc.nextLine();
 
+        // Perform operation
         String result;
         if (operation == 1) {
-            result = encrypt(text, key1, alphabet);
-            System.out.println("Encrypted text: " + result);
+            result = encrypt(text, shift, permutedAlphabet);
+            System.out.println("\nEncrypted: " + result);
         } else {
-            result = decrypt(text, key1, alphabet);
-            System.out.println("Decrypted text: " + result);
+            result = decrypt(text, shift, permutedAlphabet);
+            System.out.println("\nDecrypted: " + result);
         }
     }
 }
